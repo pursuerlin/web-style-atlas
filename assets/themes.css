@@ -36,3 +36,30 @@
 @media(max-width:850px){.header-inner nav{gap:16px}.process-art-actions{gap:14px}}
 @media(max-width:700px){.header-inner nav{gap:9px}.theme-picker summary{padding:8px;font-size:12px;gap:6px}.theme-options{right:-30px;width:210px}.wall-camera{inset-inline:-12px}.wall-camera .atlas-wall{inset:28px 15px 14px;transform:rotateX(25deg) rotateY(-10deg) rotateZ(-7deg) scale(.98)}.process-art-caption{font-size:12px}.process-art-actions{width:100%;margin-left:0;justify-content:space-between}.process-shuffle{font-size:12px}.brand{font-size:23px}.header-download{padding-inline:8px;gap:8px}}
 @media(max-width:380px){.header-download{font-size:11px}.theme-picker summary>span:last-child{display:none}.theme-picker summary{padding:10px}.brand{font-size:21px}}
+/* Bright exhibitions use separate foreground and action colors. */
+[data-theme="sky"]{--night:#eaf5ff;--lime:#1866ae;--paper:#f7fbff;--cream:#f7fbff;--ink:#173650;--accent:#1866ae;--muted:#4b667c;--line:#b4ccdf;--soft:#e0edf8;--surface:#fff;--night-text:#48647b;--night-secondary:#355771;--action-ink:#fff}
+[data-theme="mint"]{--night:#edf9f1;--lime:#176b4a;--paper:#fbfdf8;--cream:#fbfdf8;--ink:#173c2d;--accent:#176b4a;--muted:#4c6a5a;--line:#b6d2bf;--soft:#e2f0e5;--surface:#fff;--night-text:#486b58;--night-secondary:#315c44;--action-ink:#fff}
+[data-light] .hero-enter,[data-light] .design-ribbon,[data-light] .pointer-label,[data-light] .wall-motion[aria-pressed="true"],[data-light] .image-action{color:var(--action-ink)}
+[data-light] .header-download:hover{color:var(--action-ink)}
+[data-light] .site-header,[data-light] .wall-caption,[data-light] .intro-bottom,[data-light] .method-steps article{border-color:var(--line)}
+[data-light] .theme-picker summary,[data-light] .header-download,[data-light] .wall-motion,[data-light] .brand-note{border-color:var(--line)}
+[data-light] .wall-motion{color:var(--ink)}
+[data-light] .method-heading .text-link{color:var(--ink);border-color:var(--line)}
+[data-light] .hero-figure{-webkit-text-stroke-color:color-mix(in srgb,var(--ink) 9%,transparent)}
+[data-light] .nav-link:hover{color:var(--accent)}
+[data-light] .theme-options button[aria-pressed="true"]{color:var(--ink)}
+.theme-options{max-height:calc(100svh - 95px);overflow-y:auto}
+/* Bring the artwork toward the headline and use the upper-right field. */
+@media(min-width:1151px){
+ .intro{grid-template-columns:.76fr 1.24fr;column-gap:8px;padding-top:32px}
+ .atlas-stage{height:660px}
+ .wall-camera{inset-inline:-44px -45px;top:-35px;bottom:79px;perspective:1250px}
+ .wall-camera .atlas-wall{inset:10px 12px 15px;transform:rotateX(calc(25deg + var(--wall-y,0deg))) rotateY(calc(-12deg + var(--wall-x,0deg))) rotateZ(-7deg) scale(1.03)}
+ .intro-copy{padding-block:36px 40px}
+}
+@media(min-width:1700px){.atlas-stage{height:710px}.wall-camera{top:-45px;inset-inline:-58px -42px}.intro{padding-top:28px}.wall-camera .atlas-wall{inset-block:5px 12px}}
+/* Light backgrounds stay light; exhibition foregrounds use the ink token. */
+[data-light] .hero-exhibit,[data-light] .site-header,[data-light] .method,[data-light] .theme-picker summary,[data-light] .header-download{color:var(--ink)}
+[data-light] .brand-mark,[data-light] .intro h1 .accent,[data-light] .wall-index,[data-light] .scroll-cue>span,[data-light] .intro-bottom i,[data-light] .method h2 span,[data-light] .method-steps article>span{color:var(--accent)}
+.hero-edition{pointer-events:none}
+.hero-edition>span:last-child{background:var(--night);padding:3px 7px;border-radius:3px}

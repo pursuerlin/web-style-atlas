@@ -1,10 +1,11 @@
 (() => {
   'use strict';
-  const themes={forest:'#162720',cobalt:'#10283c',plum:'#302036',ember:'#34231f'};
+  const themes={forest:'#162720',cobalt:'#10283c',plum:'#302036',ember:'#34231f',sky:'#eaf5ff',mint:'#edf9f1'};
   const root=document.documentElement;
   function setTheme(theme){
     if(!Object.hasOwn(themes,theme))theme='forest';
     root.dataset.theme=theme;
+    root.toggleAttribute('data-light',theme==='sky'||theme==='mint');
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content',themes[theme]);
     document.querySelectorAll('[data-theme-option]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.themeOption===theme)));
   }
