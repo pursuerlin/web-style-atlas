@@ -28,7 +28,12 @@
     const caption=document.querySelector('#process-caption');
     let current=7,bag=[],busy=false;
     const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-    const preload=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Image unavailable'));img.src=src;});
+    const preload=src=>new Promise((resolve,reject)=>{
+      const img=new Image();
+      const finish=error=>{clearTimeout(timer);img.onload=img.onerror=null;error?reject(error):resolve(img);};
+      const timer=setTimeout(()=>finish(new Error('Image load timed out')),15000);
+      img.onload=()=>finish();img.onerror=()=>finish(new Error('Image unavailable'));img.src=src;
+    });
     button.addEventListener('click',async()=>{
       if(busy)return;busy=true;button.disabled=true;stack.setAttribute('aria-busy','true');
       if(!bag.length)bag=window.ATLAS.map(item=>item.id).filter(id=>id!==current);
