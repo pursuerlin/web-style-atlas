@@ -21,7 +21,7 @@
       picker.open=false;picker.querySelector('summary').focus({preventScroll:true});
     });
     document.addEventListener('click',event=>{if(!picker.contains(event.target))picker.open=false;});
-    document.addEventListener('keydown',event=>{if(event.key==='Escape' && picker.open){picker.open=false;picker.querySelector('summary').focus({preventScroll:true});}});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape' && picker.open){event.preventDefault();event.stopImmediatePropagation();picker.open=false;picker.querySelector('summary').focus({preventScroll:true});}},true);
     addEventListener('storage',event=>{if(event.key==='atlas-theme')setTheme(event.newValue);});
     const stack=document.querySelector('.process-image-stack');
     const button=document.querySelector('.process-shuffle');

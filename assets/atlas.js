@@ -10,6 +10,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let category = 'All', mode = 'preview', detailMode = 'preview', current = null;
   let listScroll = 0, origin = null, sequence = 0, activeTransition = null, work = Promise.resolve(), toastTimer;
+  let immersiveState=null, dockFrame;
   let searchTimer, routedFromGallery = false, pendingAnchor = null, backRequested = false;
   let modeRequest = 0, requestedMode = mode, detailModeRequest = 0, requestedDetailMode = detailMode;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -129,8 +130,56 @@
     const collection = visibleItems();
     const index = collection.findIndex(x => x.id === item.id);
     const previous = collection[index-1], next = collection[index+1];
-    detail.innerHTML = `<div class="detail-top"><button class="back" data-back><span aria-hidden="true">←</span> 返回风格图鉴</button><span class="detail-counter">${categories[item.category]} <span aria-hidden="true"> / </span> ${number(item.id)} / 20</span></div><div class="detail-intro"><div class="detail-identity"><h1>${escape(item.name)}<span class="accent">.</span></h1><div><p class="detail-description">${escape(item.description)}</p><p class="detail-en" lang="en">${escape(item.en)}</p></div></div><a class="button" href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签体验 <span aria-hidden="true">↗</span></a></div><div class="media-tools"><div class="segmented" role="group" aria-label="详情展示方式"><span class="segment-indicator" aria-hidden="true"></span><button data-detail-mode="preview" class="${detailMode === 'preview' ? 'active' : ''}" aria-pressed="${detailMode === 'preview'}">网页实作</button><button data-detail-mode="original" class="${detailMode === 'original' ? 'active' : ''}" aria-pressed="${detailMode === 'original'}">概念原图</button></div><a id="full-image" href="${detailMode === 'original' ? item.original : item.preview}" target="_blank" rel="noopener">查看完整图片 ↗</a></div><div class="detail-media" data-mode="${detailMode}"><img id="detail-image" src="${imagePath(item,detailMode)}" width="1440" height="900" alt="${escape(item.name)} ${detailMode === 'original' ? '原始概念图' : '网页实作预览'}"><iframe class="detail-frame" title="${escape(item.name)} 可交互网页" data-src="${escape(item.site_file)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" hidden></iframe><div class="frame-status" role="status" hidden><span>正在打开真实网页…</span><button type="button" data-retry-frame hidden>重新加载</button></div></div><p class="image-note">网页内可直接点击、滚动体验；下方查看设计拆解与 Prompt。</p><section class="study-grid"><div><h2>这套风格，好在哪里？</h2><p class="lead">${escape(item.hero)}</p>${[['布局结构',item.layout],['字体与层级',item.type],['图像素材',item.assets],['网页组件',item.code]].map(([title,body])=>`<div class="anatomy-row"><h3>${title}</h3><p>${escape(body)}</p></div>`).join('')}</div><aside class="detail-aside"><section><h3>视觉关键词</h3><div class="tags">${tags(item)}</div></section><section><h3>色彩参考 <span class="eyebrow">/ 点击复制</span></h3><div class="palette">${item.colors.map(color=>`<button class="color-button" data-color="${escape(color)}" aria-label="复制色值 ${escape(color)}"><span class="swatch" style="background:${escape(color)}"></span><code>${escape(color)}</code></button>`).join('')}</div><p style="margin-top:12px">从概念图提炼的近似配色。</p></section><section><h3>适合用在哪里</h3><p>${escape(item.reuse)}</p></section><section class="pitfall"><h3>落地时，留意这一点</h3><p>${escape(item.pitfall)}</p></section></aside></section><section class="prompt-section"><div class="prompt-header"><h2>带走这份灵感。</h2><div class="prompt-actions"><button class="button" data-copy-prompt>复制 Prompt <span aria-hidden="true">↗</span></button><a class="button secondary" href="${escape(item.prompt_file)}" download>下载 Markdown</a></div></div><pre class="prompt-box" id="prompt" lang="en">${escape(item.prompt)}</pre><p class="prompt-note">根据原始概念图反向重构的英文学习 Prompt，并非最初输入模型的原文。图片、字体与第三方素材的公开使用，请核对对应授权。</p></section><nav class="detail-bottom" aria-label="案例翻页"><button data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'}>← ${previous ? `上一例 · ${escape(previous.name)}` : '已是第一例'}</button><button data-next="${next?.id || ''}" ${next ? '' : 'disabled'}>${next ? `下一例 · ${escape(next.name)}` : '已是最后一例'} →</button></nav>`;
+    detail.innerHTML = `<div class="detail-top"><button class="back" data-back><span aria-hidden="true">←</span> 返回风格图鉴</button><span class="detail-counter">${categories[item.category]} <span aria-hidden="true"> / </span> ${number(item.id)} / 20</span></div><div class="detail-intro"><div class="detail-identity"><h1>${escape(item.name)}<span class="accent">.</span></h1><div><p class="detail-description">${escape(item.description)}</p><p class="detail-en" lang="en">${escape(item.en)}</p></div></div><a class="button" href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签体验 <span aria-hidden="true">↗</span></a></div><div class="media-tools"><div class="segmented" role="group" aria-label="详情展示方式"><span class="segment-indicator" aria-hidden="true"></span><button data-detail-mode="preview" class="${detailMode === 'preview' ? 'active' : ''}" aria-pressed="${detailMode === 'preview'}">网页实作</button><button data-detail-mode="original" class="${detailMode === 'original' ? 'active' : ''}" aria-pressed="${detailMode === 'original'}">概念原图</button></div><div class="media-actions"><button class="immersive-open" data-immersive-open type="button" ${detailMode === 'preview' ? '' : 'hidden'}>沉浸体验 <span aria-hidden="true">⛶</span></button><a id="full-image" href="${detailMode === 'original' ? item.original : item.preview}" target="_blank" rel="noopener">查看完整图片 ↗</a></div></div><div class="detail-media" data-mode="${detailMode}"><div class="immersive-bar" hidden><button type="button" data-immersive-close>← 退出沉浸</button><span>${escape(item.name)}</span><a href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签 ↗</a></div><img id="detail-image" src="${imagePath(item,detailMode)}" width="1440" height="900" alt="${escape(item.name)} ${detailMode === 'original' ? '原始概念图' : '网页实作预览'}"><iframe class="detail-frame" title="${escape(item.name)} 可交互网页" data-src="${escape(item.site_file)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" hidden></iframe><div class="frame-status" role="status" hidden><span>正在打开真实网页…</span><button type="button" data-retry-frame hidden>重新加载</button></div></div><p class="image-note">${detailMode === 'preview' ? '网页内可直接点击、滚动体验；下方查看设计拆解与 Prompt。' : '概念原图 · 下方查看设计拆解与 Prompt。'}</p><section class="study-grid"><div><h2>这套风格，好在哪里？</h2><p class="lead">${escape(item.hero)}</p>${[['布局结构',item.layout],['字体与层级',item.type],['图像素材',item.assets],['网页组件',item.code]].map(([title,body])=>`<div class="anatomy-row"><h3>${title}</h3><p>${escape(body)}</p></div>`).join('')}</div><aside class="detail-aside"><section><h3>视觉关键词</h3><div class="tags">${tags(item)}</div></section><section><h3>色彩参考 <span class="eyebrow">/ 点击复制</span></h3><div class="palette">${item.colors.map(color=>`<button class="color-button" data-color="${escape(color)}" aria-label="复制色值 ${escape(color)}"><span class="swatch" style="background:${escape(color)}"></span><code>${escape(color)}</code></button>`).join('')}</div><p style="margin-top:12px">从概念图提炼的近似配色。</p></section><section><h3>适合用在哪里</h3><p>${escape(item.reuse)}</p></section><section class="pitfall"><h3>落地时，留意这一点</h3><p>${escape(item.pitfall)}</p></section></aside></section><section class="prompt-section"><div class="prompt-header"><h2>带走这份灵感。</h2><div class="prompt-actions"><button class="button" data-copy-prompt>复制 Prompt <span aria-hidden="true">↗</span></button><a class="button secondary" href="${escape(item.prompt_file)}" download>下载 Markdown</a></div></div><pre class="prompt-box" id="prompt" lang="en">${escape(item.prompt)}</pre><p class="prompt-note">根据原始概念图反向重构的英文学习 Prompt，并非最初输入模型的原文。图片、字体与第三方素材的公开使用，请核对对应授权。</p></section><nav class="detail-bottom" aria-label="案例翻页"><button data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'}>← ${previous ? `上一例 · ${escape(previous.name)}` : '已是第一例'}</button><button data-next="${next?.id || ''}" ${next ? '' : 'disabled'}>${next ? `下一例 · ${escape(next.name)}` : '已是最后一例'} →</button></nav><nav class="detail-dock" aria-label="快捷浏览案例" hidden><button type="button" data-back aria-label="返回风格图鉴">←<span> 返回</span></button><span class="dock-name">${escape(item.name)}</span><button type="button" data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'} aria-label="${previous ? `上一例 ${escape(previous.name)}` : '已是第一例'}">上一例</button><button type="button" data-next="${next?.id || ''}" ${next ? '' : 'disabled'} aria-label="${next ? `下一例 ${escape(next.name)}` : '已是最后一例'}">下一例</button><button class="dock-copy" type="button" data-copy-prompt>复制 Prompt</button></nav>`;
     syncIndicators();
+  }
+  function syncDetailDock() {
+    cancelAnimationFrame(dockFrame);
+    dockFrame=requestAnimationFrame(()=>{
+      const dock=$('.detail-dock');if(!dock)return;
+      dock.hidden=!current || detail.hidden || !!immersiveState || !!document.documentElement.dataset.transitioning || $('.detail-intro').getBoundingClientRect().bottom>=0 || $('.detail-bottom').getBoundingClientRect().top<innerHeight;
+    });
+  }
+  addEventListener('scroll',syncDetailDock,{passive:true});
+  function setImmersive(open,restoreFocus=true) {
+    const media=$('.detail-media');if(!media)return;
+    if(open) {
+      if(immersiveState || detailMode!=='preview')return;
+      const targets=[...detail.children].filter(el=>el!==media).concat([...document.body.children].filter(el=>el!==detail && !el.contains(detail) && !/SCRIPT|STYLE/.test(el.tagName)));
+      immersiveState={focus:document.activeElement,scroll:scrollY,overflow:document.body.style.overflow,targets:targets.map(el=>[el,el.inert])};
+      targets.forEach(el=>el.inert=true);
+      document.body.style.overflow='hidden';media.dataset.immersive='true';
+      media.setAttribute('role','dialog');media.setAttribute('aria-modal','true');media.setAttribute('aria-label',`${current.name} 沉浸体验`);
+      $('.immersive-bar',media).hidden=false;
+      $('[data-immersive-close]',media).focus({preventScroll:true});
+    } else if(immersiveState) {
+      const state=immersiveState;immersiveState=null;
+      delete media.dataset.immersive;media.removeAttribute('role');media.removeAttribute('aria-modal');media.removeAttribute('aria-label');
+      $('.immersive-bar',media).hidden=true;
+      state.targets.forEach(([el,inert])=>el.inert=inert);
+      document.body.style.overflow=state.overflow;
+      scrollTo({top:state.scroll,behavior:'instant'});
+      if(restoreFocus && state.focus?.isConnected)state.focus.focus({preventScroll:true});
+    }
+    syncDetailDock();
+  }
+  function configureEmbeddedPage(frame,doc) {
+    doc.documentElement.dataset.atlasEmbedded='true';
+    if(!doc.getElementById('atlas-embed-style')) {
+      const style=doc.createElement('style');style.id='atlas-embed-style';
+      style.textContent='#style-atlas-capsule,#style-atlas-shroud{display:none!important}';doc.head.append(style);
+    }
+    doc.addEventListener('keydown',event=>{
+      if(!immersiveState)return;
+      if(event.key==='Escape') {
+        const hasDialog=doc.body.classList.contains('lock') || [...doc.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]')].some(el=>el.getBoundingClientRect().height>0 && frame.contentWindow.getComputedStyle(el).visibility!=='hidden');
+        if(hasDialog || event.defaultPrevented)return;
+        event.preventDefault();setImmersive(false);
+      } else if(event.key==='Tab' && !event.shiftKey) {
+        const focusable=[...doc.querySelectorAll('a[href],button,input,select,textarea,[tabindex="0"]')].filter(el=>!el.disabled && el.tabIndex>=0 && el.getBoundingClientRect().height>0 && frame.contentWindow.getComputedStyle(el).visibility!=='hidden');
+        if(!focusable.length || doc.activeElement===focusable.at(-1)){event.preventDefault();$('[data-immersive-close]').focus();}
+      }
+    },true);
   }
   const wait = ms => new Promise(resolve=>setTimeout(resolve,ms));
   function revealDetailFrame(frame) {
@@ -153,6 +202,7 @@
         frame.onload=async()=>{
           const doc=frame.contentDocument;
           if(!doc || doc.URL==='about:blank')return;
+          configureEmbeddedPage(frame,doc);
           await Promise.race([Promise.all([doc.fonts?.ready,...[...doc.images].slice(0,6).map(img=>img.decode().catch(()=>{}))]),wait(800)]);
           await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
           clearTimeout(timer);
@@ -202,7 +252,9 @@
   }
   const routeId = () => {const m=location.hash.match(/^#case\/(\d+)$/);return m ? Number(m[1]) : null;};
   async function route() {
+    if(immersiveState)setImmersive(false,false);
     const request = ++sequence, id=routeId(), item=items.find(x=>x.id===id);
+    if(current?.id!==id){clearTimeout(toastTimer);$('#toast').classList.remove('visible');}
     if (id && !item) {history.replaceState(null,'',location.pathname+location.search+'#collection');toast('这个案例不存在，已返回图鉴。');}
     if (item) await preload(imagePath(item, current ? detailMode : mode));
     if (request!==sequence) return;
@@ -225,7 +277,7 @@
           current=item;if(!fromList)renderDetail(item);detail.classList.remove('detail-preparing');detail.inert=false;gallery.dispatchEvent(new Event('atlas:conceal'));gallery.hidden=true;detail.hidden=false;
           window.scrollTo({top:0,behavior:'instant'});document.title=`${item.name} · ${item.zh} — Style Atlas`;
           if(!fromList)await prepareLiveDestination();
-        },{kind:'open',source:source && source.getBoundingClientRect().height ? source : null,destination:()=>$('.detail-media')});
+        },{kind:'open',source:source && source.getBoundingClientRect().bottom>0 && source.getBoundingClientRect().top<innerHeight ? source : null,destination:()=>$('.detail-media')});
         activateDetailFrame();
         detail.focus({preventScroll:true});
       } else if(current) {
@@ -259,7 +311,7 @@
         listScroll=scrollY;saveListState();
         if(pendingAnchor) {$(pendingAnchor)?.scrollIntoView({behavior:'instant',block:'start'});pendingAnchor=null;}
       }
-      syncIndicators();backRequested=false;
+      syncIndicators();syncDetailDock();backRequested=false;
     });
   }
   document.addEventListener('click',event=>{
@@ -269,6 +321,8 @@
     if(open && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button===0) {
       event.preventDefault();origin=open;routedFromGallery=true;location.hash=`case/${open.dataset.open}`;return;
     }
+    if(event.target.closest('[data-immersive-open]')){setImmersive(true);return;}
+    if(event.target.closest('[data-immersive-close]')){setImmersive(false);return;}
     const back=event.target.closest('[data-back]');
     if(back) {if(backRequested || !current) return;backRequested=true;if(routedFromGallery) history.back();else location.hash='collection';return;}
     const next=event.target.closest('[data-next]');
@@ -283,7 +337,7 @@
       requestedDetailMode=desired;selectButton(detailButton);detailButton.parentElement.setAttribute('aria-busy','true');
       preload(imagePath(item,desired)).then(()=>enqueue(async()=>{
         if(current!==item || request!==detailModeRequest) return;
-        await animateChange(async()=>{detailMode=desired;$('.detail-media').dataset.mode=desired;$('.detail-frame').hidden=desired!=='preview';const img=$('#detail-image');img.src=imagePath(item,desired);img.alt=`${item.name} ${desired==='original'?'原始概念图':'网页实作预览'}`;$('#full-image').href=desired==='original'?item.original:item.preview;selectButton(detailButton);await prepareLiveDestination();},{kind:'swap'});
+        await animateChange(async()=>{detailMode=desired;$('.image-note').textContent=desired==='preview'?'网页内可直接点击、滚动体验；下方查看设计拆解与 Prompt。':'概念原图 · 下方查看设计拆解与 Prompt。';$('[data-immersive-open]').hidden=desired!=='preview';$('.detail-media').dataset.mode=desired;$('.detail-frame').hidden=desired!=='preview';const img=$('#detail-image');img.src=imagePath(item,desired);img.alt=`${item.name} ${desired==='original'?'原始概念图':'网页实作预览'}`;$('#full-image').href=desired==='original'?item.original:item.preview;selectButton(detailButton);await prepareLiveDestination();},{kind:'swap'});
         activateDetailFrame();
         if(request===detailModeRequest) detailButton.parentElement.removeAttribute('aria-busy');
       }));
@@ -316,7 +370,15 @@
   }));
   $('#reset').addEventListener('click',()=>{category='All';$('#search').value='';selectButton($('[data-cat="All"]'));enqueue(()=>animateChange(()=>{filterCards();saveListState();},{nameImages:true}));});
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape' && current) {$('[data-back]').click();}
+    if(event.defaultPrevented)return;
+    if(immersiveState) {
+      if(event.key==='Escape'){event.preventDefault();setImmersive(false);return;}
+      if(event.key==='Tab' && event.shiftKey && document.activeElement===$('[data-immersive-close]')) {
+        event.preventDefault();$('.detail-frame').focus();
+      }
+      return;
+    }
+    if(event.key==='Escape' && current && !$('.theme-picker').open) {$('[data-back]').click();}
     if(event.key==='/' && !current && !event.metaKey && !event.ctrlKey && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {event.preventDefault();$('#search').focus();}
   });
   document.addEventListener('pointerover',event=>{const link=event.target.closest('[data-open]');if(link){const item=items.find(x=>x.id===Number(link.dataset.open));preload(imagePath(item,mode));}},{passive:true});
