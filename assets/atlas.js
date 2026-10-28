@@ -10,7 +10,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let category = 'All', mode = 'preview', detailMode = 'preview', current = null;
   let listScroll = 0, origin = null, sequence = 0, activeTransition = null, work = Promise.resolve(), toastTimer;
-  let immersiveState=null, dockFrame;
+  let immersiveState=null, studyReturnFocus=null, dockFrame;
   let searchTimer, routedFromGallery = false, pendingAnchor = null, backRequested = false;
   let modeRequest = 0, requestedMode = mode, detailModeRequest = 0, requestedDetailMode = detailMode;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -130,8 +130,28 @@
     const collection = visibleItems();
     const index = collection.findIndex(x => x.id === item.id);
     const previous = collection[index-1], next = collection[index+1];
-    detail.innerHTML = `<div class="detail-top"><button class="back" data-back><span aria-hidden="true">←</span> 返回风格图鉴</button><span class="detail-counter">${categories[item.category]} <span aria-hidden="true"> / </span> ${number(item.id)} / 20</span></div><div class="detail-intro"><div class="detail-identity"><h1>${escape(item.name)}<span class="accent">.</span></h1><div><p class="detail-description">${escape(item.description)}</p><p class="detail-en" lang="en">${escape(item.en)}</p></div></div><a class="button" href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签体验 <span aria-hidden="true">↗</span></a></div><div class="media-tools"><div class="segmented" role="group" aria-label="详情展示方式"><span class="segment-indicator" aria-hidden="true"></span><button data-detail-mode="preview" class="${detailMode === 'preview' ? 'active' : ''}" aria-pressed="${detailMode === 'preview'}">网页实作</button><button data-detail-mode="original" class="${detailMode === 'original' ? 'active' : ''}" aria-pressed="${detailMode === 'original'}">概念原图</button></div><div class="media-actions"><button class="immersive-open" data-immersive-open type="button" ${detailMode === 'preview' ? '' : 'hidden'}>沉浸体验 <span aria-hidden="true">⛶</span></button><a id="full-image" href="${detailMode === 'original' ? item.original : item.preview}" target="_blank" rel="noopener">查看完整图片 ↗</a></div></div><div class="detail-media" data-mode="${detailMode}"><div class="immersive-bar" hidden><button type="button" data-immersive-close>← 退出沉浸</button><span>${escape(item.name)}</span><a href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签 ↗</a></div><img id="detail-image" src="${imagePath(item,detailMode)}" width="1440" height="900" alt="${escape(item.name)} ${detailMode === 'original' ? '原始概念图' : '网页实作预览'}"><iframe class="detail-frame" title="${escape(item.name)} 可交互网页" data-src="${escape(item.site_file)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" hidden></iframe><div class="frame-status" role="status" hidden><span>正在打开真实网页…</span><button type="button" data-retry-frame hidden>重新加载</button></div></div><p class="image-note">${detailMode === 'preview' ? '网页内可直接点击、滚动体验；下方查看设计拆解与 Prompt。' : '概念原图 · 下方查看设计拆解与 Prompt。'}</p><section class="study-grid"><div><h2>这套风格，好在哪里？</h2><p class="lead">${escape(item.hero)}</p>${[['布局结构',item.layout],['字体与层级',item.type],['图像素材',item.assets],['网页组件',item.code]].map(([title,body])=>`<div class="anatomy-row"><h3>${title}</h3><p>${escape(body)}</p></div>`).join('')}</div><aside class="detail-aside"><section><h3>视觉关键词</h3><div class="tags">${tags(item)}</div></section><section><h3>色彩参考 <span class="eyebrow">/ 点击复制</span></h3><div class="palette">${item.colors.map(color=>`<button class="color-button" data-color="${escape(color)}" aria-label="复制色值 ${escape(color)}"><span class="swatch" style="background:${escape(color)}"></span><code>${escape(color)}</code></button>`).join('')}</div><p style="margin-top:12px">从概念图提炼的近似配色。</p></section><section><h3>适合用在哪里</h3><p>${escape(item.reuse)}</p></section><section class="pitfall"><h3>落地时，留意这一点</h3><p>${escape(item.pitfall)}</p></section></aside></section><section class="prompt-section"><div class="prompt-header"><h2>带走这份灵感。</h2><div class="prompt-actions"><button class="button" data-copy-prompt>复制 Prompt <span aria-hidden="true">↗</span></button><a class="button secondary" href="${escape(item.prompt_file)}" download>下载 Markdown</a></div></div><pre class="prompt-box" id="prompt" lang="en">${escape(item.prompt)}</pre><p class="prompt-note">根据原始概念图反向重构的英文学习 Prompt，并非最初输入模型的原文。图片、字体与第三方素材的公开使用，请核对对应授权。</p></section><nav class="detail-bottom" aria-label="案例翻页"><button data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'}>← ${previous ? `上一例 · ${escape(previous.name)}` : '已是第一例'}</button><button data-next="${next?.id || ''}" ${next ? '' : 'disabled'}>${next ? `下一例 · ${escape(next.name)}` : '已是最后一例'} →</button></nav><nav class="detail-dock" aria-label="快捷浏览案例" hidden><button type="button" data-back aria-label="返回风格图鉴">←<span> 返回</span></button><span class="dock-name">${escape(item.name)}</span><button type="button" data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'} aria-label="${previous ? `上一例 ${escape(previous.name)}` : '已是第一例'}">上一例</button><button type="button" data-next="${next?.id || ''}" ${next ? '' : 'disabled'} aria-label="${next ? `下一例 ${escape(next.name)}` : '已是最后一例'}">下一例</button><button class="dock-copy" type="button" data-copy-prompt>复制 Prompt</button></nav>`;
+    detail.innerHTML = `<div class="detail-top"><button class="back" data-back><span aria-hidden="true">←</span> 返回风格图鉴</button><span class="detail-counter">${categories[item.category]} <span aria-hidden="true"> / </span> ${number(item.id)} / 20</span></div><div class="detail-intro"><div class="detail-identity"><h1>${escape(item.name)}<span class="accent">.</span></h1><div><p class="detail-description">${escape(item.description)}</p><p class="detail-en" lang="en">${escape(item.en)}</p></div></div><a class="button" href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签体验 <span aria-hidden="true">↗</span></a></div><div class="media-tools"><div class="segmented" role="group" aria-label="详情展示方式"><span class="segment-indicator" aria-hidden="true"></span><button data-detail-mode="preview" class="${detailMode === 'preview' ? 'active' : ''}" aria-pressed="${detailMode === 'preview'}">网页实作</button><button data-detail-mode="original" class="${detailMode === 'original' ? 'active' : ''}" aria-pressed="${detailMode === 'original'}">概念原图</button></div><div class="media-actions"><button class="immersive-open" data-immersive-open type="button" ${detailMode === 'preview' ? '' : 'hidden'}>沉浸体验 <span aria-hidden="true">⛶</span></button><a id="full-image" href="${detailMode === 'original' ? item.original : item.preview}" target="_blank" rel="noopener">查看完整图片 ↗</a></div></div><div class="detail-media" data-mode="${detailMode}"><div class="immersive-bar" hidden><button type="button" data-immersive-close>← 退出沉浸</button><span>${escape(item.name)}</span><div class="immersive-actions"><button type="button" data-immersive-study aria-haspopup="dialog" aria-expanded="false">风格拆解</button><a href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签 ↗</a></div></div><button class="immersive-shade" type="button" aria-label="关闭风格拆解" tabindex="-1" hidden></button><aside class="immersive-study" role="dialog" aria-modal="true" aria-labelledby="immersive-study-title" hidden><div class="immersive-study-head"><h2 id="immersive-study-title">${escape(item.name)} · 风格拆解</h2><button type="button" data-study-close aria-label="关闭风格拆解">关闭 ×</button></div><div class="immersive-study-body"></div></aside><img id="detail-image" src="${imagePath(item,detailMode)}" width="1440" height="900" alt="${escape(item.name)} ${detailMode === 'original' ? '原始概念图' : '网页实作预览'}"><iframe class="detail-frame" title="${escape(item.name)} 可交互网页" data-src="${escape(item.site_file)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" hidden></iframe><div class="frame-status" role="status" hidden><span>正在打开真实网页…</span><button type="button" data-retry-frame hidden>重新加载</button></div></div><p class="image-note">${detailMode === 'preview' ? '网页内可直接点击、滚动体验；下方查看设计拆解与 Prompt。' : '概念原图 · 下方查看设计拆解与 Prompt。'}</p><section class="study-grid"><div><h2>这套风格，好在哪里？</h2><p class="lead">${escape(item.hero)}</p>${[['布局结构',item.layout],['字体与层级',item.type],['图像素材',item.assets],['网页组件',item.code]].map(([title,body])=>`<div class="anatomy-row"><h3>${title}</h3><p>${escape(body)}</p></div>`).join('')}</div><aside class="detail-aside"><section><h3>视觉关键词</h3><div class="tags">${tags(item)}</div></section><section><h3>色彩参考 <span class="eyebrow">/ 点击复制</span></h3><div class="palette">${item.colors.map(color=>`<button class="color-button" data-color="${escape(color)}" aria-label="复制色值 ${escape(color)}"><span class="swatch" style="background:${escape(color)}"></span><code>${escape(color)}</code></button>`).join('')}</div><p style="margin-top:12px">从概念图提炼的近似配色。</p></section><section><h3>适合用在哪里</h3><p>${escape(item.reuse)}</p></section><section class="pitfall"><h3>落地时，留意这一点</h3><p>${escape(item.pitfall)}</p></section></aside></section><section class="prompt-section"><div class="prompt-header"><h2>带走这份灵感。</h2><div class="prompt-actions"><button class="button" data-copy-prompt>复制 Prompt <span aria-hidden="true">↗</span></button><a class="button secondary" href="${escape(item.prompt_file)}" download>下载 Markdown</a></div></div><pre class="prompt-box" id="prompt" lang="en">${escape(item.prompt)}</pre><p class="prompt-note">根据原始概念图反向重构的英文学习 Prompt，并非最初输入模型的原文。图片、字体与第三方素材的公开使用，请核对对应授权。</p></section><nav class="detail-bottom" aria-label="案例翻页"><button data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'}>← ${previous ? `上一例 · ${escape(previous.name)}` : '已是第一例'}</button><button data-next="${next?.id || ''}" ${next ? '' : 'disabled'}>${next ? `下一例 · ${escape(next.name)}` : '已是最后一例'} →</button></nav><nav class="detail-dock" aria-label="快捷浏览案例" hidden><button type="button" data-back aria-label="返回风格图鉴">←<span> 返回</span></button><span class="dock-name">${escape(item.name)}</span><button type="button" data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'} aria-label="${previous ? `上一例 ${escape(previous.name)}` : '已是第一例'}">上一例</button><button type="button" data-next="${next?.id || ''}" ${next ? '' : 'disabled'} aria-label="${next ? `下一例 ${escape(next.name)}` : '已是最后一例'}">下一例</button><button class="dock-copy" type="button" data-copy-prompt>复制 Prompt</button></nav>`;
     syncIndicators();
+  }
+  function setImmersiveStudy(open,restoreFocus=true) {
+    const panel=$('.immersive-study');if(!panel)return;
+    if(open && immersiveState) {
+    const study=$('.study-grid',detail).cloneNode(true), prompt=$('.prompt-section',detail).cloneNode(true);
+    study.className='immersive-study-grid';prompt.className='immersive-study-prompt';
+    [study,prompt].forEach(node=>{node.removeAttribute('inert');node.querySelectorAll('[inert]').forEach(el=>el.removeAttribute('inert'));});
+    prompt.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+    $('.immersive-study-body').append(study,prompt);
+      studyReturnFocus=document.activeElement;panel.hidden=false;panel.scrollTo({top:0,behavior:'instant'});$('.immersive-shade').hidden=false;
+      $('.detail-frame').inert=true;$('.immersive-bar').inert=true;
+      $('[data-immersive-study]').setAttribute('aria-expanded','true');
+      $('[data-study-close]').focus({preventScroll:true});
+    } else {
+      panel.hidden=true;$('.immersive-shade').hidden=true;$('.immersive-study-body').replaceChildren();panel.scrollTop=0;
+      $('.detail-frame').inert=false;$('.immersive-bar').inert=false;
+      $('[data-immersive-study]').setAttribute('aria-expanded','false');
+      if(restoreFocus && studyReturnFocus?.isConnected)studyReturnFocus.focus({preventScroll:true});
+      studyReturnFocus=null;
+    }
   }
   function syncDetailDock() {
     cancelAnimationFrame(dockFrame);
@@ -145,7 +165,7 @@
     const media=$('.detail-media');if(!media)return;
     if(open) {
       if(immersiveState || detailMode!=='preview')return;
-      const targets=[...detail.children].filter(el=>el!==media).concat([...document.body.children].filter(el=>el!==detail && !el.contains(detail) && !/SCRIPT|STYLE/.test(el.tagName)));
+      const targets=[...detail.children].filter(el=>el!==media).concat([...document.body.children].filter(el=>el!==detail && el.id!=='toast' && !el.contains(detail) && !/SCRIPT|STYLE/.test(el.tagName)));
       immersiveState={focus:document.activeElement,scroll:scrollY,overflow:document.body.style.overflow,targets:targets.map(el=>[el,el.inert])};
       targets.forEach(el=>el.inert=true);
       document.body.style.overflow='hidden';media.dataset.immersive='true';
@@ -153,6 +173,7 @@
       $('.immersive-bar',media).hidden=false;
       $('[data-immersive-close]',media).focus({preventScroll:true});
     } else if(immersiveState) {
+      setImmersiveStudy(false,false);
       const state=immersiveState;immersiveState=null;
       delete media.dataset.immersive;media.removeAttribute('role');media.removeAttribute('aria-modal');media.removeAttribute('aria-label');
       $('.immersive-bar',media).hidden=true;
@@ -321,6 +342,8 @@
     if(open && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button===0) {
       event.preventDefault();origin=open;routedFromGallery=true;location.hash=`case/${open.dataset.open}`;return;
     }
+    if(event.target.closest('[data-immersive-study]')){setImmersiveStudy(true);return;}
+    if(event.target.closest('[data-study-close],.immersive-shade')){setImmersiveStudy(false);return;}
     if(event.target.closest('[data-immersive-open]')){setImmersive(true);return;}
     if(event.target.closest('[data-immersive-close]')){setImmersive(false);return;}
     const back=event.target.closest('[data-back]');
@@ -372,6 +395,17 @@
   document.addEventListener('keydown',event=>{
     if(event.defaultPrevented)return;
     if(immersiveState) {
+      const panel=$('.immersive-study');
+      if(!panel.hidden) {
+        if(event.key==='Escape'){event.preventDefault();setImmersiveStudy(false);}
+        if(event.key==='Tab') {
+          const nodes=[...panel.querySelectorAll('button,a[href],[tabindex="0"]')].filter(el=>!el.disabled && el.getBoundingClientRect().height>0);
+          const first=nodes[0],last=nodes.at(-1);
+          if(event.shiftKey && document.activeElement===first){event.preventDefault();last.focus();}
+          else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus();}
+        }
+        return;
+      }
       if(event.key==='Escape'){event.preventDefault();setImmersive(false);return;}
       if(event.key==='Tab' && event.shiftKey && document.activeElement===$('[data-immersive-close]')) {
         event.preventDefault();$('.detail-frame').focus();

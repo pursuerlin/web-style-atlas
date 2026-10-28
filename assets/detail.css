@@ -58,3 +58,24 @@ body:has(.detail-media[data-immersive]) .pointer-label{display:none}
 body:has(.detail-dock:not([hidden])) .toast{bottom:92px}
 .detail-media[data-mode="original"]{height:auto;min-height:0}
 .detail-media[data-mode="original"] #detail-image{position:static;height:auto;display:block}
+.immersive-actions{display:flex;align-items:center;gap:22px;white-space:nowrap}
+.immersive-actions [data-immersive-study]{font-weight:600;border-bottom:1px solid var(--line);padding:5px 0}
+.immersive-study[hidden],.immersive-shade[hidden]{display:none}
+.immersive-shade{position:absolute;inset:52px 0 0;border:0;border-radius:0;background:#071a2266;z-index:3;cursor:default}
+.immersive-study{position:absolute;inset:52px 0 0 auto;width:min(680px,85%);background:var(--paper);color:var(--ink);z-index:4;overflow-y:auto;overscroll-behavior:contain;box-shadow:-12px 0 40px #0002;animation:study-slide .2s ease-out}
+.immersive-study-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:var(--paper);border-bottom:1px solid var(--line);z-index:1}
+.immersive-study-head h2{font-size:17px;font-weight:600;margin:0;overflow-wrap:anywhere}
+.immersive-study-head button{border:0;background:var(--soft);color:var(--ink);padding:9px 12px;border-radius:4px;font-size:13px;white-space:nowrap}
+.immersive-study-body{padding:24px}
+.immersive-study-grid h2,.immersive-study-prompt h2{font-size:25px;line-height:1.4;margin-bottom:16px;letter-spacing:-.03em}
+.immersive-study-grid .lead{font-size:15px}
+.immersive-study-grid .detail-aside{display:block;margin-top:28px}
+.immersive-study-grid .detail-aside section{margin-bottom:24px}
+.immersive-study-prompt{border-top:1px solid var(--line);padding-top:24px;margin-top:24px}
+.immersive-study-prompt .prompt-header{display:block}
+.immersive-study-prompt .prompt-actions{margin-top:16px;flex-wrap:wrap}
+.immersive-study-prompt .prompt-box{padding:18px;font-size:12px}
+body:has(.immersive-study:not([hidden])) .toast{z-index:250}
+@keyframes study-slide{from{opacity:0;translate:18px 0}to{opacity:1;translate:0 0}}
+@media(max-width:580px){.immersive-bar>span{display:none}.immersive-actions{gap:18px}.immersive-actions button{font-size:12px}.immersive-study,.immersive-shade{top:calc(52px + env(safe-area-inset-top))}.immersive-study{width:100%}.immersive-study-head{padding:14px 18px}.immersive-study-body{padding:20px 18px}.immersive-study-prompt .button{font-size:12px;padding:10px 12px}.immersive-study-prompt .prompt-actions{gap:8px}}
+@media(prefers-reduced-motion:reduce){.immersive-study{animation:none}}
