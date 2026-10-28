@@ -71,10 +71,10 @@
     clearNames();
     if (nameImages) nameVisibleImages();
     if (source) source.style.viewTransitionName = 'selected-image';
-    if (reduced.matches) {change();clearNames();return;}
+    if (reduced.matches) {await change();clearNames();return;}
     if (document.startViewTransition) {
-      const transition = document.startViewTransition(() => {
-        change();
+      const transition = document.startViewTransition(async () => {
+        await change();
         if (nameImages) nameVisibleImages();
         const target = destination?.();
         if (target) target.style.viewTransitionName = 'selected-image';
@@ -88,13 +88,13 @@
     }
     // Shared-image fallback for browsers without native View Transitions.
     const rect = source?.getBoundingClientRect();
-    const clone = rect && source.cloneNode(true);
+    const clone = rect && (source.matches('.detail-media') ? $('#detail-image',source) : source).cloneNode(true);
     if (clone) {
       clone.removeAttribute('data-image');clone.removeAttribute('id');
-      Object.assign(clone.style,{position:'fixed',left:`${rect.left}px`,top:`${rect.top}px`,width:`${rect.width}px`,height:`${rect.height}px`,maxWidth:'none',margin:'0',objectFit:'cover',objectPosition:'top',zIndex:'999',pointerEvents:'none',borderRadius:'6px'});
+      Object.assign(clone.style,{position:'fixed',left:`${rect.left}px`,top:`${rect.top}px`,width:`${rect.width}px`,height:`${rect.height}px`,maxWidth:'none',margin:'0',objectFit:'cover',objectPosition:'top',zIndex:'999',pointerEvents:'none',borderRadius:'6px',opacity:'1',transition:'none'});
       document.body.append(clone);
     }
-    change();
+    await change();
     const target = destination?.();
     if (clone && target) {
       const end = target.getBoundingClientRect();target.style.visibility = 'hidden';
@@ -132,32 +132,60 @@
     detail.innerHTML = `<div class="detail-top"><button class="back" data-back><span aria-hidden="true">←</span> 返回风格图鉴</button><span class="detail-counter">${categories[item.category]} <span aria-hidden="true"> / </span> ${number(item.id)} / 20</span></div><div class="detail-intro"><div class="detail-identity"><h1>${escape(item.name)}<span class="accent">.</span></h1><div><p class="detail-description">${escape(item.description)}</p><p class="detail-en" lang="en">${escape(item.en)}</p></div></div><a class="button" href="${escape(item.site_file)}" target="_blank" rel="noopener">新页签体验 <span aria-hidden="true">↗</span></a></div><div class="media-tools"><div class="segmented" role="group" aria-label="详情展示方式"><span class="segment-indicator" aria-hidden="true"></span><button data-detail-mode="preview" class="${detailMode === 'preview' ? 'active' : ''}" aria-pressed="${detailMode === 'preview'}">网页实作</button><button data-detail-mode="original" class="${detailMode === 'original' ? 'active' : ''}" aria-pressed="${detailMode === 'original'}">概念原图</button></div><a id="full-image" href="${detailMode === 'original' ? item.original : item.preview}" target="_blank" rel="noopener">查看完整图片 ↗</a></div><div class="detail-media" data-mode="${detailMode}"><img id="detail-image" src="${imagePath(item,detailMode)}" width="1440" height="900" alt="${escape(item.name)} ${detailMode === 'original' ? '原始概念图' : '网页实作预览'}"><iframe class="detail-frame" title="${escape(item.name)} 可交互网页" data-src="${escape(item.site_file)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" hidden></iframe><div class="frame-status" role="status" hidden><span>正在打开真实网页…</span><button type="button" data-retry-frame hidden>重新加载</button></div></div><p class="image-note">网页内可直接点击、滚动体验；下方查看设计拆解与 Prompt。</p><section class="study-grid"><div><h2>这套风格，好在哪里？</h2><p class="lead">${escape(item.hero)}</p>${[['布局结构',item.layout],['字体与层级',item.type],['图像素材',item.assets],['网页组件',item.code]].map(([title,body])=>`<div class="anatomy-row"><h3>${title}</h3><p>${escape(body)}</p></div>`).join('')}</div><aside class="detail-aside"><section><h3>视觉关键词</h3><div class="tags">${tags(item)}</div></section><section><h3>色彩参考 <span class="eyebrow">/ 点击复制</span></h3><div class="palette">${item.colors.map(color=>`<button class="color-button" data-color="${escape(color)}" aria-label="复制色值 ${escape(color)}"><span class="swatch" style="background:${escape(color)}"></span><code>${escape(color)}</code></button>`).join('')}</div><p style="margin-top:12px">从概念图提炼的近似配色。</p></section><section><h3>适合用在哪里</h3><p>${escape(item.reuse)}</p></section><section class="pitfall"><h3>落地时，留意这一点</h3><p>${escape(item.pitfall)}</p></section></aside></section><section class="prompt-section"><div class="prompt-header"><h2>带走这份灵感。</h2><div class="prompt-actions"><button class="button" data-copy-prompt>复制 Prompt <span aria-hidden="true">↗</span></button><a class="button secondary" href="${escape(item.prompt_file)}" download>下载 Markdown</a></div></div><pre class="prompt-box" id="prompt" lang="en">${escape(item.prompt)}</pre><p class="prompt-note">根据原始概念图反向重构的英文学习 Prompt，并非最初输入模型的原文。图片、字体与第三方素材的公开使用，请核对对应授权。</p></section><nav class="detail-bottom" aria-label="案例翻页"><button data-next="${previous?.id || ''}" ${previous ? '' : 'disabled'}>← ${previous ? `上一例 · ${escape(previous.name)}` : '已是第一例'}</button><button data-next="${next?.id || ''}" ${next ? '' : 'disabled'}>${next ? `下一例 · ${escape(next.name)}` : '已是最后一例'} →</button></nav>`;
     syncIndicators();
   }
-  function activateDetailFrame() {
+  const wait = ms => new Promise(resolve=>setTimeout(resolve,ms));
+  function revealDetailFrame(frame) {
+    if(!frame?.isConnected || frame.dataset.ready!=='true')return;
+    frame.closest('.detail-media').dataset.live='ready';
+    $('.frame-status',frame.parentElement).hidden=true;
+  }
+  function activateDetailFrame(deferReveal=false) {
     const media=$('.detail-media'), frame=$('.detail-frame');
-    const image=$('#detail-image');
-    if(image){image.style.removeProperty('opacity');image.style.removeProperty('transition');}
-    if(!frame || detailMode!=='preview')return;
+    if(!frame || detailMode!=='preview')return Promise.resolve();
     frame.hidden=false;
-    if(frame.dataset.started)return;
-    frame.dataset.started='true';
-    const status=$('.frame-status',media), label=$('span',status), retry=$('button',status);
-    status.hidden=false;retry.hidden=true;label.textContent='正在打开真实网页…';
-    const timer=setTimeout(()=>{
-      if(!frame.isConnected)return;
-      label.textContent='网页加载较慢，可重试或在新页签体验。';retry.hidden=false;
-    },12000);
-    frame.onload=()=>{
-      if(frame.contentDocument?.URL==='about:blank')return;
-      clearTimeout(timer);
-      if(!frame.isConnected)return;
-      media.dataset.live='ready';status.hidden=true;
-    };
-    frame.src=frame.dataset.src;
+    if(!frame.readyPromise) {
+      const status=$('.frame-status',media), label=$('span',status), retry=$('button',status);
+      status.hidden=false;retry.hidden=true;label.textContent='正在打开真实网页…';
+      const timer=setTimeout(()=>{
+        if(!frame.isConnected)return;
+        label.textContent='网页加载较慢，可重试或在新页签体验。';retry.hidden=false;
+      },12000);
+      frame.readyPromise=new Promise(resolve=>{
+        frame.onload=async()=>{
+          const doc=frame.contentDocument;
+          if(!doc || doc.URL==='about:blank')return;
+          await Promise.race([Promise.all([doc.fonts?.ready,...[...doc.images].slice(0,6).map(img=>img.decode().catch(()=>{}))]),wait(800)]);
+          await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+          clearTimeout(timer);
+          if(!frame.isConnected)return;
+          frame.dataset.ready='true';resolve();
+        };
+        frame.dataset.started='true';frame.src=frame.dataset.src;
+      });
+    }
+    if(!deferReveal)frame.readyPromise.then(()=>revealDetailFrame(frame));
+    return frame.readyPromise;
   }
-  function prepareDetailImage() {
-    const media=$('.detail-media');
-    if(media){delete media.dataset.live;const image=$('#detail-image');image.style.transition='none';image.style.opacity='1';}
+  async function prepareLiveDestination() {
+    if(detailMode!=='preview')return;
+    const frame=$('.detail-frame');
+    await Promise.race([activateDetailFrame(true),wait(1100)]);
+    if(frame.dataset.ready!=='true')frame.closest('.detail-media').dataset.cold='true';
+    revealDetailFrame(frame);
   }
+  // Warm only deliberate hover/focus targets, without running 20 live pages.
+  const warmed=new Set();let warmTimer;
+  function warmTarget(event) {
+    const link=event.target.closest('[data-open]');
+    if(!link || mode!=='preview' || navigator.connection?.saveData)return;
+    clearTimeout(warmTimer);
+    warmTimer=setTimeout(()=>{
+      const item=items.find(x=>String(x.id)===link.dataset.open);
+      if(!item || warmed.has(item.id) || warmed.size>=3)return;
+      warmed.add(item.id);fetch(item.site_file,{cache:'force-cache'}).catch(()=>warmed.delete(item.id));
+    },120);
+  }
+  document.addEventListener('pointerover',warmTarget);
+  document.addEventListener('focusin',warmTarget);
   function saveListState() {
     try {sessionStorage.setItem('atlas-list',JSON.stringify({category,query:$('#search').value,mode,scroll:listScroll}));} catch {}
   }
@@ -183,21 +211,28 @@
       if (item && current?.id === item.id) return;
       if (item) {
         const fromList=!current;
-        if(!fromList)prepareDetailImage();
-        const source = fromList ? (origin?.dataset.open === String(item.id) ? originImage() : cardImage(item.id)) : $('#detail-image');
-        if(fromList) {listScroll=window.scrollY;detailMode=mode;saveListState();}
-        await animateChange(()=>{
-          current=item;renderDetail(item);gallery.dispatchEvent(new Event('atlas:conceal'));gallery.hidden=true;detail.hidden=false;
+        const source = fromList ? (origin?.dataset.open === String(item.id) ? originImage() : cardImage(item.id)) : $('.detail-media');
+        if(fromList) {
+          listScroll=window.scrollY;detailMode=mode;saveListState();
+          document.documentElement.dataset.preparing='true';
+          const loadingOrigin=origin;loadingOrigin?.setAttribute('aria-busy','true');
+          renderDetail(item);detail.classList.add('detail-preparing');detail.inert=true;
+          await prepareLiveDestination();
+          loadingOrigin?.removeAttribute('aria-busy');delete document.documentElement.dataset.preparing;
+          if(request!==sequence){detail.classList.remove('detail-preparing');detail.inert=false;detail.hidden=true;return;}
+        }
+        await animateChange(async()=>{
+          current=item;if(!fromList)renderDetail(item);detail.classList.remove('detail-preparing');detail.inert=false;gallery.dispatchEvent(new Event('atlas:conceal'));gallery.hidden=true;detail.hidden=false;
           window.scrollTo({top:0,behavior:'instant'});document.title=`${item.name} · ${item.zh} — Style Atlas`;
-        },{kind:'open',source:source && source.getBoundingClientRect().height ? source : null,destination:()=>$('#detail-image')});
+          if(!fromList)await prepareLiveDestination();
+        },{kind:'open',source:source && source.getBoundingClientRect().height ? source : null,destination:()=>$('.detail-media')});
         activateDetailFrame();
         detail.focus({preventScroll:true});
       } else if(current) {
         const closing=current;
-        prepareDetailImage();
         // Restore the listing image to exactly the same content before shrinking.
         cardImage(closing.id).src=imagePath(closing,detailMode);
-        const source=$('#detail-image');
+        const source=$('.detail-media');
         const sourceRect=source.getBoundingClientRect();
         if(sourceRect.bottom<0 || sourceRect.top>innerHeight) source.scrollIntoView({block:'center',behavior:'instant'});
         const returnImage = origin?.dataset.open === String(closing.id) ? originImage() : cardImage(closing.id);
@@ -241,14 +276,14 @@
     const color=event.target.closest('[data-color]');
     if(color) copy(color.dataset.color,`已复制色值 ${color.dataset.color}`);
     if(event.target.closest('[data-copy-prompt]') && current) copy(current.prompt,`已复制 ${current.name} 的 Prompt`);
-    if(event.target.closest('[data-retry-frame]')){delete $('.detail-frame').dataset.started;activateDetailFrame();}
+    if(event.target.closest('[data-retry-frame]')){$('.detail-frame').readyPromise=null;delete $('.detail-frame').dataset.ready;activateDetailFrame();}
     const detailButton=event.target.closest('[data-detail-mode]');
     if(detailButton && detailButton.dataset.detailMode!==requestedDetailMode) {
       const desired=detailButton.dataset.detailMode, item=current, request=++detailModeRequest;
       requestedDetailMode=desired;selectButton(detailButton);detailButton.parentElement.setAttribute('aria-busy','true');
       preload(imagePath(item,desired)).then(()=>enqueue(async()=>{
         if(current!==item || request!==detailModeRequest) return;
-        await animateChange(()=>{detailMode=desired;$('.detail-media').dataset.mode=desired;$('.detail-frame').hidden=desired!=='preview';const img=$('#detail-image');img.src=imagePath(item,desired);img.alt=`${item.name} ${desired==='original'?'原始概念图':'网页实作预览'}`;$('#full-image').href=desired==='original'?item.original:item.preview;selectButton(detailButton);},{kind:'swap'});
+        await animateChange(async()=>{detailMode=desired;$('.detail-media').dataset.mode=desired;$('.detail-frame').hidden=desired!=='preview';const img=$('#detail-image');img.src=imagePath(item,desired);img.alt=`${item.name} ${desired==='original'?'原始概念图':'网页实作预览'}`;$('#full-image').href=desired==='original'?item.original:item.preview;selectButton(detailButton);await prepareLiveDestination();},{kind:'swap'});
         activateDetailFrame();
         if(request===detailModeRequest) detailButton.parentElement.removeAttribute('aria-busy');
       }));

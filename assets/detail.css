@@ -26,3 +26,11 @@
  .detail .media-tools{padding:9px 0}.media-tools a{font-size:11px}.detail-media{height:calc(100svh - 258px);min-height:420px;border-radius:4px}.detail .image-note{font-size:12px;margin-bottom:26px}
 }
 @media(prefers-reduced-motion:reduce){.detail-frame,.detail-media #detail-image{transition:none}}
+/* The live layout is the transition destination; never enlarge a raster stand-in. */
+.detail-media[data-mode="preview"] #detail-image{opacity:0;pointer-events:none;transition:none}
+.detail-frame{transition:none}
+.atlas-card[aria-busy="true"]{cursor:progress}
+.detail-media[data-cold] .detail-frame{transition:opacity .16s ease-out}
+@media(prefers-reduced-motion:reduce){.detail-media[data-cold] .detail-frame{transition:none}}
+.detail.detail-preparing{display:block!important;position:fixed;left:-20000px;top:0;visibility:hidden;pointer-events:none;margin:0}
+html[data-preparing] .wall-track{animation-play-state:paused!important}
