@@ -20,3 +20,5 @@
 ::view-transition-image-pair(selected-image){isolation:isolate}
 
 @media(max-width:580px){.intro{padding-top:24px}.intro-copy{padding-bottom:20px}.intro h1{font-size:48px;margin:12px 0}.intro-copy .text-link{margin-top:8px;padding-block:6px}.feature-caption,.intro-bottom{display:none}.collection{padding-top:32px}.collection-heading{margin-bottom:16px}}
+/* Anchor targets keep focus without framing the entire page. */
+main:focus{outline:none}
