@@ -1,0 +1,180 @@
+{
+  "gallery": {
+    "20_cards": true,
+    "images_loaded": true,
+    "category_filter": true,
+    "search": true,
+    "no_results": true,
+    "page_errors": []
+  },
+  "guides": {
+    "preview_images_loaded": true,
+    "prompt_copy_button": true
+  },
+  "mobile": {
+    "no_horizontal_overflow": true
+  },
+  "standalone_sites": [
+    {
+      "name": "Sonora",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Wilderly",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "NORD",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Pixel Quest",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Plumhill",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Roamly",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Harmonia",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Auranova",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "MotionWay",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "NovaAI",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "NeonForge",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "SparkCrew",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Orbitalis",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "NOVA",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Pixel Haven",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "RawClub",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Flowei",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "MindFlow",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Notely",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    },
+    {
+      "name": "Lumora",
+      "capsule": true,
+      "modal": true,
+      "original_embedded": true,
+      "prompt": true,
+      "page_errors": []
+    }
+  ],
+  "zip_integrity": true
+}
