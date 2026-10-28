@@ -8,9 +8,11 @@
   <title>Style Atlas — 网页风格图鉴</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/atlas.css">
+  <link rel="stylesheet" href="assets/hero.css">
   <script src="assets/atlas-data.js" defer></script>
   <script src="assets/prompts-data.js" defer></script>
   <script src="assets/atlas.js" defer></script>
+  <script src="assets/hero.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#collection">跳到风格图鉴</a>
@@ -23,7 +25,10 @@
   <div id="gallery">
     <section class="intro shell">
       <div class="intro-copy"><p class="eyebrow">一本可以亲手翻开的设计图鉴</p><h1>好设计，<br>有迹<span class="accent">可循。</span></h1><p class="intro-description">从一张概念图，到一个真实网页。<br>拆开 20 种视觉语言，找到你的下一次创作灵感。</p><a class="text-link" href="#collection">开始探索 <span aria-hidden="true">↘</span></a></div>
-      <a class="featured" href="#case/1" data-open="1" aria-label="探索 Sonora 静奢自然产品摄影"><div class="feature-image"><img src="previews/01_Sonora.webp" alt="Sonora 静奢音响网页预览" fetchpriority="high" width="1440" height="900"></div><div class="feature-caption"><span>本期选读 <span class="caption-line"></span> 01 / 20</span><span>Sonora · 安静的设计，也有力量 <span aria-hidden="true">↗</span></span></div></a>
+      <div class="featured atlas-stage" id="atlas-stage">
+        <div class="atlas-wall" id="atlas-wall" aria-label="20 种网页风格，选择任意作品查看详情"></div>
+        <div class="wall-caption"><span class="wall-index" id="wall-index">20 / 20</span><span id="wall-current">二十种设计，二十个世界。</span><span class="wall-hint" aria-hidden="true">任选一张，展开灵感 ↗</span></div>
+      </div>
       <div class="intro-bottom"><span>20 种风格 <i>·</i> 概念与实作对照 <i>·</i> 可复用设计拆解</span><span class="edition">精选集 / 2026</span></div>
     </section>
     <main id="collection" class="shell collection" tabindex="-1">

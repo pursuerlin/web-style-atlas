@@ -1,0 +1,36 @@
+/* Twenty real pages form one spatial index. */
+.intro{grid-template-columns:.82fr 1.18fr;column-gap:34px;padding-top:38px;position:relative}
+.intro-copy{align-self:center;padding-block:20px 30px;position:relative;z-index:2}
+.atlas-stage{height:510px;position:relative;isolation:isolate;perspective:1500px;min-width:0}
+.atlas-wall{position:absolute;inset:28px -5px auto -5px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px 14px;transform:rotateX(calc(12deg + var(--wall-y,0deg))) rotateY(calc(-13deg + var(--wall-x,0deg))) rotateZ(-9deg);transform-style:preserve-3d;transform-origin:50% 50%;transition:transform .45s var(--ease)}
+.wall-tile{position:relative;display:block;min-width:0;border:1px solid #233e3224;border-radius:5px;background:var(--surface);box-shadow:0 4px 6px #203f350b,0 15px 24px -11px #203f3538;transform:translateY(var(--shift)) translateZ(0);transform-origin:center;transition:transform .35s var(--ease),box-shadow .35s var(--ease);outline-offset:5px}
+.tile-bar{height:12px;display:flex;align-items:center;gap:3px;padding-inline:5px;background:#fffefa;border-radius:5px 5px 0 0;border-bottom:1px solid #203f350b}
+.tile-bar i{width:3px;height:3px;border-radius:50%;background:#aeb8aa}
+.tile-bar i:first-child{background:#b68b71}
+.wall-tile img{width:100%;height:auto;aspect-ratio:1.6;object-fit:cover;object-position:top;border-radius:0 0 4px 4px;view-transition-class:atlas-image}
+.wall-tile:hover,.wall-tile:focus-visible{transform:translateY(calc(var(--shift) - 7px)) translateZ(65px) scale(1.13);box-shadow:0 8px 14px #203f3514,0 27px 35px -14px #203f355c;z-index:3}
+.wall-tile:active{transform:translateY(calc(var(--shift) - 3px)) translateZ(40px) scale(1.06)}
+.wall-caption{position:absolute;inset:auto 0 3px;display:flex;align-items:center;gap:15px;min-width:0;font-size:13px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:15px}
+.wall-index{font-variant-numeric:tabular-nums;color:var(--accent);white-space:nowrap;font-size:12px}
+#wall-current{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wall-hint{margin-left:auto;white-space:nowrap;font-size:12px}
+body.first-entry .atlas-stage{animation:none}
+body.first-entry .wall-tile{animation:wall-arrive .34s calc(var(--order)*10ms) var(--ease) both}
+html[data-transitioning] .atlas-wall{transition:none}
+@keyframes wall-arrive{from{opacity:0;transform:translateY(calc(var(--shift) + 20px)) translateZ(-30px) scale(.94)}to{opacity:1;transform:translateY(var(--shift)) translateZ(0) scale(1)}}
+@media(min-width:1600px){.intro{padding-top:44px}.atlas-stage{height:520px}.atlas-wall{inset-block-start:34px}}
+@media(max-width:1150px){.intro{column-gap:24px;grid-template-columns:.8fr 1.2fr}.atlas-stage{height:420px}.atlas-wall{inset-block-start:30px;gap:13px 10px}.wall-caption{gap:10px}.wall-hint{display:none}.tile-bar{height:10px}}
+@media(max-width:850px){.intro{column-gap:22px;padding-top:30px}.atlas-stage{height:360px}.atlas-wall{inset-inline:-6px;gap:11px 8px;transform:rotateX(calc(10deg + var(--wall-y,0deg))) rotateY(calc(-9deg + var(--wall-x,0deg))) rotateZ(-8deg)}.wall-caption{font-size:12px}.tile-bar{height:8px;gap:2px;padding-inline:4px}.tile-bar i{width:2px;height:2px}.wall-tile{border-radius:4px}.intro h1{font-size:46px}}
+@media(max-width:700px){.intro{grid-template-columns:1fr;padding-top:24px}.intro-copy{padding:0 0 20px}.intro h1{font-size:48px}.atlas-stage{height:310px;margin-top:3px;margin-bottom:8px}.atlas-wall{inset:28px 2px auto;gap:12px 9px;transform:rotateX(10deg) rotateY(-6deg) rotateZ(-7deg);transform-origin:50% 40%}.wall-tile{--shift:0px!important}.wall-tile:nth-child(5n + 2),.wall-tile:nth-child(5n + 4){--shift:12px!important}.wall-caption{inset-block-end:0;padding-top:12px;font-size:12px}.wall-index{font-size:12px}.wall-tile:hover,.wall-tile:focus-visible{transform:translateY(calc(var(--shift) - 4px)) translateZ(30px) scale(1.06)}.intro-bottom{display:none}.collection{padding-top:28px}}
+@media(max-width:400px){.atlas-stage{height:286px}.atlas-wall{gap:10px 7px;inset-block-start:22px}.wall-caption{padding-top:10px}}
+@media(prefers-reduced-motion:reduce){.atlas-wall,.wall-tile{transition:none!important;animation:none!important}.wall-tile:hover,.wall-tile:focus-visible{transform:translateY(var(--shift))}}
+/* Reserve room for the rotated corners and keep the caption outside the wall. */
+@media(min-width:1151px){.atlas-stage{height:550px}.atlas-wall{inset:40px 30px auto 5px;transform:rotateX(calc(10deg + var(--wall-y,0deg))) rotateY(calc(-10deg + var(--wall-x,0deg))) rotateZ(-7deg) scale(.91)}}
+@media(min-width:701px) and (max-width:1150px){.atlas-wall{inset-inline:5px 20px;transform:rotateX(calc(10deg + var(--wall-y,0deg))) rotateY(calc(-9deg + var(--wall-x,0deg))) rotateZ(-7deg) scale(.9)}}
+@media(max-width:400px){.atlas-stage{height:310px}}
+@media(min-width:701px) and (max-width:850px){.intro-description{font-size:13px;letter-spacing:-.1px}}
+/* Flatten tile hit planes so rotated cards keep reliable pointer targets. */
+.atlas-wall{transform-style:flat}
+@media(max-width:700px){.wall-hint{display:inline;font-size:12px}.wall-caption{gap:10px}#wall-current{max-width:160px}}
+@media(max-width:400px){#wall-current{max-width:135px}.wall-hint{font-size:11px}}
+@media(max-width:700px){.atlas-stage{height:clamp(310px,calc(65vw + 60px),515px)}.atlas-wall{inset-inline:12px;transform:rotateX(10deg) rotateY(-6deg) rotateZ(-7deg) scale(.95)}}

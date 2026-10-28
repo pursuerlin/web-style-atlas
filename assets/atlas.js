@@ -21,6 +21,15 @@
     return (category === 'All' || item.category === category) && [item.name,item.zh,item.en,item.description,...item.keywords].join(' ').toLocaleLowerCase().includes(query);
   });
   cards.innerHTML = items.map(item => `<a class="atlas-card" href="#case/${item.id}" data-open="${item.id}" aria-label="查看 ${escape(item.name)} · ${escape(item.zh)}"><div class="card-image"><img data-image="${item.id}" src="${imagePath(item, mode)}" width="1440" height="900" loading="lazy" decoding="async" alt="${escape(item.name)} 网页实作预览"><span class="image-action" aria-hidden="true">↗</span></div><div class="card-meta"><span>${categories[item.category]}</span><span class="card-index">${number(item.id)} / 20</span></div><div class="card-title"><h3>${escape(item.name)}</h3><span aria-hidden="true">↗</span></div><p class="card-description">${escape(item.zh)}</p><div class="tags">${tags(item)}</div></a>`).join('');
+  // Interleave different visual families so the opening wall reads as a collection.
+  const wallOrder = [1,7,3,20,5,11,2,14,4,8,18,6,9,16,10,15,19,12,13,17];
+  $('#atlas-wall').innerHTML = wallOrder.map((id,index)=>{
+    const item=items.find(x=>x.id===id), shift=[0,22,-10,18,-3][index%5];
+    return `<a class="wall-tile" href="#case/${item.id}" data-open="${item.id}" data-name="${escape(item.name)}" data-style="${escape(item.zh)}" style="--shift:${shift}px;--order:${index}" aria-label="查看 ${escape(item.name)} · ${escape(item.zh)}"><span class="tile-bar" aria-hidden="true"><i></i><i></i><i></i></span><img data-hero-image="${item.id}" src="${imagePath(item,mode)}" alt="${escape(item.name)} 网页风格预览" width="1440" height="900" decoding="async" ${index<5?'fetchpriority="high"':'loading="lazy"'}></a>`;
+  }).join('');
+  function syncHeroImages(type) {
+    $$('[data-hero-image]').forEach(img=>{const item=items.find(x=>x.id===Number(img.dataset.heroImage));img.src=imagePath(item,type);img.alt=`${item.name} ${type==='original'?'原始概念图':'网页实作预览'}`;});
+  }
   const cardFor = id => $(`.atlas-card[data-open="${id}"]`);
   const cardImage = id => $(`[data-image="${id}"]`, cardFor(id));
   function placeIndicator(group) {
@@ -65,6 +74,8 @@
         if (target) target.style.viewTransitionName = 'selected-image';
       });
       activeTransition = transition;
+      transition.ready.catch(() => {});
+      transition.updateCallbackDone.catch(() => {});
       try {await transition.finished;} catch { /* Interrupted transitions still commit their update. */ }
       finally {if (activeTransition === transition) activeTransition = null;clearNames();}
       return;
@@ -126,7 +137,7 @@
       mode = state.mode === 'original' ? 'original' : 'preview';
       $('#search').value = state.query || '';listScroll=Number(state.scroll)||0;
       selectButton($(`[data-cat="${category}"]`));selectButton($(`[data-mode="${mode}"]`));
-      items.forEach(item=>{cardImage(item.id).src=imagePath(item,mode);});$('.featured img').src=imagePath(items[0],mode);
+      items.forEach(item=>{cardImage(item.id).src=imagePath(item,mode);});syncHeroImages(mode);
     } catch {}
   }
   const routeId = () => {const m=location.hash.match(/^#case\/(\d+)$/);return m ? Number(m[1]) : null;};
@@ -169,7 +180,7 @@
         const target=origin?.dataset.open === String(closing.id) && origin.getBoundingClientRect().height ? origin : cardFor(closing.id);
         if(!target.hidden) target.focus({preventScroll:true});
         // Keep the chosen image mode consistent across the whole listing.
-        if(mode!==detailMode) {mode=detailMode;requestedMode=mode;items.forEach(x=>{cardImage(x.id).src=imagePath(x,mode);});$('.featured img').src=imagePath(items[0],mode);selectButton($(`[data-mode="${mode}"]`));}
+        if(mode!==detailMode) {mode=detailMode;requestedMode=mode;items.forEach(x=>{cardImage(x.id).src=imagePath(x,mode);});syncHeroImages(mode);selectButton($(`[data-mode="${mode}"]`));}
         listScroll=scrollY;saveListState();
         if(pendingAnchor) {$(pendingAnchor)?.scrollIntoView({behavior:'instant',block:'start'});pendingAnchor=null;}
       }
@@ -222,7 +233,7 @@
     if(request!==modeRequest) return;
     enqueue(async()=>{
       if(request!==modeRequest) return;
-      await animateChange(()=>{mode=desired;items.forEach(item=>{const img=cardImage(item.id);img.src=imagePath(item,mode);img.alt=`${item.name} ${mode==='original'?'原始概念图':'网页实作预览'}`;});$('.featured img').src=imagePath(items[0],mode);$('#collection-label').textContent=categories[category];saveListState();},{kind:'swap'});
+      await animateChange(()=>{mode=desired;items.forEach(item=>{const img=cardImage(item.id);img.src=imagePath(item,mode);img.alt=`${item.name} ${mode==='original'?'原始概念图':'网页实作预览'}`;});syncHeroImages(mode);$('#collection-label').textContent=categories[category];saveListState();},{kind:'swap'});
       if(request===modeRequest) button.parentElement.removeAttribute('aria-busy');
     });
   }));
