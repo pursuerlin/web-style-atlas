@@ -29,13 +29,14 @@
   }
   $('#atlas-wall').innerHTML = Array.from({length:5},(_,column)=>{
     const ids=wallOrder.filter((_,index)=>index%5===column);
-    const duration=[34,41,37,44,39][column], delay=[-7,-19,-11,-27,-15][column];
+    const duration=[16,20,18,22,19][column], delay=[-4,-11,-6,-15,-8][column];
     return `<div class="wall-column" data-direction="${column%2?'down':'up'}"><div class="wall-track" style="--duration:${duration}s;--delay:${delay}s"><div class="wall-set">${ids.map((id,row)=>wallTile(id,row*5+column)).join('')}</div><div class="wall-set wall-repeat">${ids.map((id,row)=>wallTile(id,row*5+column,true)).join('')}</div></div></div>`;
   }).join('');
   function syncHeroImages(type) {
     $$('[data-hero-image]').forEach(img=>{const item=items.find(x=>x.id===Number(img.dataset.heroImage));img.src=imagePath(item,type);img.alt=`${item.name} ${type==='original'?'原始概念图':'网页实作预览'}`;});
   }
   const cardFor = id => $(`.atlas-card[data-open="${id}"]`);
+  const originImage = () => origin?.closest('.process-art') ? $('.process-implementation img',origin.closest('.process-art')) : (origin ? $('img',origin) : null);
   const cardImage = id => $(`[data-image="${id}"]`, cardFor(id));
   function placeIndicator(group) {
     const button = $('button.active', group), indicator = $(':scope > span', group);
@@ -156,10 +157,10 @@
       if (item && current?.id === item.id) return;
       if (item) {
         const fromList=!current;
-        const source = fromList ? (origin?.dataset.open === String(item.id) ? $('img',origin) : cardImage(item.id)) : $('#detail-image');
+        const source = fromList ? (origin?.dataset.open === String(item.id) ? originImage() : cardImage(item.id)) : $('#detail-image');
         if(fromList) {listScroll=window.scrollY;detailMode=mode;saveListState();}
         await animateChange(()=>{
-          current=item;renderDetail(item);gallery.hidden=true;detail.hidden=false;
+          current=item;renderDetail(item);gallery.dispatchEvent(new Event('atlas:conceal'));gallery.hidden=true;detail.hidden=false;
           window.scrollTo({top:0,behavior:'instant'});document.title=`${item.name} · ${item.zh} — Style Atlas`;
         },{kind:'open',source:source && source.getBoundingClientRect().height ? source : null,destination:()=>$('#detail-image')});
         detail.focus({preventScroll:true});
@@ -170,7 +171,7 @@
         const source=$('#detail-image');
         const sourceRect=source.getBoundingClientRect();
         if(sourceRect.bottom<0 || sourceRect.top>innerHeight) source.scrollIntoView({block:'center',behavior:'instant'});
-        const returnImage = origin?.dataset.open === String(closing.id) ? $('img',origin) : cardImage(closing.id);
+        const returnImage = origin?.dataset.open === String(closing.id) ? originImage() : cardImage(closing.id);
         returnImage.src=imagePath(closing,detailMode);
         await animateChange(()=>{
           detail.hidden=true;gallery.hidden=false;current=null;

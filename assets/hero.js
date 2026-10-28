@@ -34,6 +34,10 @@
     }
   });
   const gallery=document.querySelector('#gallery');
+  gallery.addEventListener('atlas:conceal',()=>{
+    stage.setAttribute('data-route-hold','');
+    routePhases=[...wall.querySelectorAll('.wall-track')].map(track=>track.getAnimations()[0]?.currentTime);
+  });
   // display:none cancels CSS animations; restore their clocks before the return snapshot.
   gallery.addEventListener('atlas:reveal',()=>{
     if(!routePhases)return;
@@ -54,7 +58,7 @@
   const syncVisibility=()=>stage.toggleAttribute('data-page-hidden',document.hidden);
   document.addEventListener('visibilitychange',syncVisibility);syncVisibility();
 
-  const resetLabel=()=>{label.textContent='二十种设计，二十个世界。';index.textContent='20 / 20';};
+  const resetLabel=()=>{label.textContent='选择作品，查看设计拆解。';index.textContent='20 / 20';};
   function showTile(tile){
     if(!tile) return;
     label.textContent=`${tile.dataset.name} · ${tile.dataset.style}`;
