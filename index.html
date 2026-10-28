@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="assets/atlas.css">
   <link rel="stylesheet" href="assets/hero.css">
   <link rel="stylesheet" href="assets/exhibition.css">
+  <link rel="stylesheet" href="assets/themes.css">
+  <script src="assets/preferences.js"></script>
   <script src="assets/vendor/gsap.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/atlas-data.js" defer></script>
@@ -23,7 +25,7 @@
   <header class="site-header">
     <div class="shell header-inner">
       <a class="brand" href="./" aria-label="Style Atlas 首页"><span class="brand-mark" aria-hidden="true">✳</span> Style Atlas<span class="brand-note">网页风格图鉴</span></a>
-      <nav aria-label="主导航"><a class="nav-link" href="#collection">探索风格</a><a class="nav-link" href="#method">学习方法</a><a class="header-download" href="ALL_20_PROMPTS.md" download>Prompt 合集 <span aria-hidden="true">↗</span></a></nav>
+      <nav aria-label="主导航"><details class="theme-picker"><summary aria-label="选择配色主题"><span class="theme-current" aria-hidden="true"></span><span>配色</span></summary><div class="theme-options" role="group" aria-label="网页配色"><p>选择你的展览色彩</p><button type="button" data-theme-option="forest" aria-pressed="true"><i style="background:#d6fb68"></i>森林荧光<span>默认</span></button><button type="button" data-theme-option="cobalt" aria-pressed="false"><i style="background:#98ddff"></i>深海电蓝</button><button type="button" data-theme-option="plum" aria-pressed="false"><i style="background:#f4b9f2"></i>暮色莓紫</button><button type="button" data-theme-option="ember" aria-pressed="false"><i style="background:#ffbc86"></i>日落赤陶</button></div></details><a class="nav-link" href="#collection">探索风格</a><a class="nav-link" href="#method">学习方法</a><a class="header-download" href="ALL_20_PROMPTS.md" download>Prompt 合集 <span aria-hidden="true">↗</span></a></nav>
     </div>
   </header>
   <div id="gallery">
@@ -43,7 +45,7 @@
     <section class="process-story" id="process" aria-labelledby="process-title">
       <div class="process-sticky shell">
         <div class="process-copy"><p class="eyebrow">从概念，到可以触摸的网页</p><h2 id="process-title">让想象，<br><span>真实发生。</span></h2><p>同一个灵感，两种表达。<br>向下滚动，看设计从概念走进现实。</p><div class="process-meter" aria-hidden="true"><span></span></div><div class="process-state" aria-live="off"><span class="is-current" data-process-state="concept">01 · 概念原图</span><span data-process-state="website">02 · 网页实作</span></div><a class="text-link" href="#collection">探索全部 20 种风格 <span aria-hidden="true">↓</span></a></div>
-        <div class="process-art"><div class="process-image-stack"><img class="process-concept" src="originals_webp/01_Sonora.webp" alt="Sonora 柔和生活方式风格的概念原图" width="1440" height="900" loading="lazy"><div class="process-implementation"><span class="process-browser" aria-hidden="true"><i></i><i></i><i></i><b>sonora / live preview</b></span><img src="previews/01_Sonora.webp" alt="相同风格落地后的 Sonora 真实网页" width="1440" height="900" loading="lazy"></div><div class="process-scanline" aria-hidden="true"></div></div><div class="process-art-caption"><span>Sonora · 生活方式 / 01</span><a href="#case/1" data-open="1">走进这个设计 <span aria-hidden="true">↗</span></a></div></div>
+        <div class="process-art"><div class="process-image-stack"><img class="process-concept" src="originals_webp/07_Harmonia.webp" alt="Harmonia 高饱和潮流文化风格的概念原图" width="1440" height="900" loading="lazy"><div class="process-implementation"><span class="process-browser" aria-hidden="true"><i></i><i></i><i></i><b>harmonia / live preview</b></span><img src="previews/07_Harmonia.webp" alt="相同风格落地后的 Harmonia 真实网页" width="1440" height="900" loading="lazy"></div><div class="process-scanline" aria-hidden="true"></div></div><div class="process-art-caption"><span id="process-caption" role="status" aria-live="polite">Harmonia · 高饱和潮流文化 / 07</span><div class="process-art-actions"><button class="process-shuffle" type="button" aria-label="随机换一个设计灵感"><span aria-hidden="true">⤨</span> 换个灵感</button><a href="#case/7" data-open="7">走进这个设计 <span aria-hidden="true">↗</span></a></div></div></div>
       </div>
     </section>
     <main id="collection" class="shell collection" tabindex="-1">
