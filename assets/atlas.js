@@ -11,6 +11,7 @@
   let category = 'All', mode = 'preview', detailMode = 'preview', current = null;
   let listScroll = 0, origin = null, sequence = 0, activeTransition = null, work = Promise.resolve(), toastTimer;
   let searchTimer, routedFromGallery = false, pendingAnchor = null, backRequested = false;
+  let modeRequest = 0, requestedMode = mode, detailModeRequest = 0, requestedDetailMode = detailMode;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   const imagePath = (item, type) => type === 'original' ? item.original_webp : item.preview;
   const number = id => String(id).padStart(2, '0');
@@ -49,6 +50,8 @@
     return work;
   }
   async function animateChange(change, {kind='filter', source=null, destination=null, nameImages=false} = {}) {
+    document.documentElement.dataset.transitioning='true';
+    try {
     document.documentElement.dataset.motion = kind;
     clearNames();
     if (nameImages) nameVisibleImages();
@@ -82,6 +85,7 @@
       finally {target.style.visibility='';clone.remove();}
     } else clone?.remove();
     clearNames();
+    } finally {delete document.documentElement.dataset.transitioning;}
   }
   async function preload(src) {
     const img = new Image();img.src = src;
@@ -104,6 +108,7 @@
     } catch {toast('暂时无法复制，请选中文字手动复制。');}
   }
   function renderDetail(item) {
+    requestedDetailMode=detailMode;++detailModeRequest;
     const collection = visibleItems();
     const index = collection.findIndex(x => x.id === item.id);
     const previous = collection[index-1], next = collection[index+1];
@@ -164,7 +169,7 @@
         const target=origin?.dataset.open === String(closing.id) && origin.getBoundingClientRect().height ? origin : cardFor(closing.id);
         if(!target.hidden) target.focus({preventScroll:true});
         // Keep the chosen image mode consistent across the whole listing.
-        if(mode!==detailMode) {mode=detailMode;items.forEach(x=>{cardImage(x.id).src=imagePath(x,mode);});$('.featured img').src=imagePath(items[0],mode);selectButton($(`[data-mode="${mode}"]`));}
+        if(mode!==detailMode) {mode=detailMode;requestedMode=mode;items.forEach(x=>{cardImage(x.id).src=imagePath(x,mode);});$('.featured img').src=imagePath(items[0],mode);selectButton($(`[data-mode="${mode}"]`));}
         listScroll=scrollY;saveListState();
         if(pendingAnchor) {$(pendingAnchor)?.scrollIntoView({behavior:'instant',block:'start'});pendingAnchor=null;}
       }
@@ -186,11 +191,13 @@
     if(color) copy(color.dataset.color,`已复制色值 ${color.dataset.color}`);
     if(event.target.closest('[data-copy-prompt]') && current) copy(current.prompt,`已复制 ${current.name} 的 Prompt`);
     const detailButton=event.target.closest('[data-detail-mode]');
-    if(detailButton && detailButton.dataset.detailMode!==detailMode) {
-      const desired=detailButton.dataset.detailMode, item=current;
+    if(detailButton && detailButton.dataset.detailMode!==requestedDetailMode) {
+      const desired=detailButton.dataset.detailMode, item=current, request=++detailModeRequest;
+      requestedDetailMode=desired;selectButton(detailButton);detailButton.parentElement.setAttribute('aria-busy','true');
       preload(imagePath(item,desired)).then(()=>enqueue(async()=>{
-        if(current!==item) return;
+        if(current!==item || request!==detailModeRequest) return;
         await animateChange(()=>{detailMode=desired;const img=$('#detail-image');img.src=imagePath(item,desired);img.alt=`${item.name} ${desired==='original'?'原始概念图':'网页实作预览'}`;$('#full-image').href=desired==='original'?item.original:item.preview;selectButton(detailButton);},{kind:'swap'});
+        if(request===detailModeRequest) detailButton.parentElement.removeAttribute('aria-busy');
       }));
     }
   });
@@ -205,9 +212,19 @@
   });
   $$('[data-mode]').forEach(button=>button.addEventListener('click',async()=>{
     const desired=button.dataset.mode;
-    if(mode===desired) return;
-    await Promise.all(visibleItems().map(item=>preload(imagePath(item,desired))));
-    enqueue(()=>animateChange(()=>{mode=desired;items.forEach(item=>{const img=cardImage(item.id);img.src=imagePath(item,mode);img.alt=`${item.name} ${mode==='original'?'原始概念图':'网页实作预览'}`;});$('.featured img').src=imagePath(items[0],mode);selectButton(button);saveListState();},{kind:'swap'}));
+    if(requestedMode===desired) return;
+    requestedMode=desired;
+    const request=++modeRequest;
+    button.parentElement.setAttribute('aria-busy','true');selectButton(button);
+    $('#collection-label').textContent=desired==='original'?'正在载入概念原图…':'正在载入网页实作…';
+    const onScreen=visibleItems().filter(item=>{const rect=cardFor(item.id).getBoundingClientRect();return rect.top<innerHeight && rect.bottom>0;});
+    await Promise.all(onScreen.map(item=>preload(imagePath(item,desired))));
+    if(request!==modeRequest) return;
+    enqueue(async()=>{
+      if(request!==modeRequest) return;
+      await animateChange(()=>{mode=desired;items.forEach(item=>{const img=cardImage(item.id);img.src=imagePath(item,mode);img.alt=`${item.name} ${mode==='original'?'原始概念图':'网页实作预览'}`;});$('.featured img').src=imagePath(items[0],mode);$('#collection-label').textContent=categories[category];saveListState();},{kind:'swap'});
+      if(request===modeRequest) button.parentElement.removeAttribute('aria-busy');
+    });
   }));
   $('#reset').addEventListener('click',()=>{category='All';$('#search').value='';selectButton($('[data-cat="All"]'));enqueue(()=>animateChange(()=>{filterCards();saveListState();},{nameImages:true}));});
   document.addEventListener('keydown',event=>{
@@ -219,7 +236,7 @@
   addEventListener('resize',()=>{activeTransition?.skipTransition();syncIndicators();});
   addEventListener('pagehide',()=>{if(!current) listScroll=scrollY;saveListState();});
   document.fonts.ready.then(syncIndicators);
-  restoreListState();filterCards();syncIndicators();
+  restoreListState();requestedMode=mode;filterCards();syncIndicators();
   if(routeId()) route();
   else if(listScroll && !location.hash) window.scrollTo({top:listScroll,behavior:'instant'});
   if(!reduced.matches && !routeId()) {document.body.classList.add('first-entry');setTimeout(()=>document.body.classList.remove('first-entry'),700);}
