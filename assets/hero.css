@@ -38,3 +38,37 @@ html[data-transitioning] .atlas-wall{transition:none}
 .intro-continuation{white-space:nowrap}
 .intro-description{max-width:450px}
 @media(max-width:400px){#wall-current{max-width:none;flex:1}.wall-hint{font-size:12px}}
+
+/* Alternating belts repeat an identical four-page set for an exact seamless loop. */
+.atlas-wall{--wall-gap:16px;gap:14px;align-items:start}
+.atlas-wall{bottom:90px}
+.wall-column{position:relative;min-width:0;min-height:0;height:100%;overflow:clip;padding-inline:6px;margin-inline:-6px;border-radius:6px;mask-image:linear-gradient(to bottom,transparent,#000 5%,#000 95%,transparent)}
+.wall-track{display:flex;flex-direction:column;animation:wall-flow var(--duration,36s) var(--delay,0s) linear infinite}
+.wall-column[data-direction="down"] .wall-track{animation-name:wall-flow-down}
+.wall-set{display:flex;flex-direction:column;gap:var(--wall-gap);padding-bottom:var(--wall-gap);flex:none}
+.wall-column:nth-child(2),.wall-column:nth-child(4){margin-top:22px}
+.wall-column:nth-child(3){margin-top:-10px}
+.wall-tile{--shift:0px!important;flex:none}
+.atlas-stage:hover .wall-column:hover .wall-track,
+.wall-column:focus-within .wall-track,
+.atlas-stage[data-paused] .wall-track,
+.atlas-stage[data-pressing] .wall-track,
+.atlas-stage[data-route-hold] .wall-track,
+.atlas-stage[data-offscreen] .wall-track,
+.atlas-stage[data-page-hidden] .wall-track,
+html[data-transitioning] .wall-track,
+#gallery[hidden] .wall-track{animation-play-state:paused}
+.wall-motion{width:32px;height:32px;flex:none;border:1px solid #b8c3b4;border-radius:50%;padding:6px;display:grid;place-items:center;background:transparent;color:var(--ink)}
+.wall-motion:hover{background:var(--soft)}
+.wall-motion svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wall-motion[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.atlas-stage[data-static] .wall-track{animation:none!important;transform:none!important}
+.atlas-stage[data-static] .wall-repeat{display:none}
+.atlas-stage[data-static] .wall-column{mask-image:none;overflow:visible}
+@keyframes wall-flow{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes wall-flow-down{from{transform:translateY(-50%)}to{transform:translateY(0)}}
+@media(max-width:1150px){.atlas-wall{--wall-gap:13px;gap:10px}}
+@media(max-width:850px){.atlas-wall{--wall-gap:11px;gap:8px}.wall-column:nth-child(2),.wall-column:nth-child(4){margin-top:12px}}
+@media(max-width:700px){.atlas-wall{--wall-gap:12px;gap:9px;bottom:65px}.wall-caption{gap:9px}.wall-hint{font-size:12px}.wall-motion{width:30px;height:30px;padding:5px}}
+@media(max-width:400px){.atlas-wall{--wall-gap:10px;gap:7px}.wall-caption{gap:8px}.wall-index{font-size:11px}.wall-hint{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.wall-track{animation:none!important;transform:none!important}.wall-repeat{display:none}.wall-column{mask-image:none}}

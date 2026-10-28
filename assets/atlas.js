@@ -23,9 +23,14 @@
   cards.innerHTML = items.map(item => `<a class="atlas-card" href="#case/${item.id}" data-open="${item.id}" aria-label="查看 ${escape(item.name)} · ${escape(item.zh)}"><div class="card-image"><img data-image="${item.id}" src="${imagePath(item, mode)}" width="1440" height="900" loading="lazy" decoding="async" alt="${escape(item.name)} 网页实作预览"><span class="image-action" aria-hidden="true">↗</span></div><div class="card-meta"><span>${categories[item.category]}</span><span class="card-index">${number(item.id)} / 20</span></div><div class="card-title"><h3>${escape(item.name)}</h3><span aria-hidden="true">↗</span></div><p class="card-description">${escape(item.zh)}</p><div class="tags">${tags(item)}</div></a>`).join('');
   // Interleave different visual families so the opening wall reads as a collection.
   const wallOrder = [1,7,3,20,5,11,2,14,4,8,18,6,9,16,10,15,19,12,13,17];
-  $('#atlas-wall').innerHTML = wallOrder.map((id,index)=>{
-    const item=items.find(x=>x.id===id), shift=[0,22,-10,18,-3][index%5];
-    return `<a class="wall-tile" href="#case/${item.id}" data-open="${item.id}" data-name="${escape(item.name)}" data-style="${escape(item.zh)}" style="--shift:${shift}px;--order:${index}" aria-label="查看 ${escape(item.name)} · ${escape(item.zh)}"><span class="tile-bar" aria-hidden="true"><i></i><i></i><i></i></span><img data-hero-image="${item.id}" src="${imagePath(item,mode)}" alt="${escape(item.name)} 网页风格预览" width="1440" height="900" decoding="async" ${index<5?'fetchpriority="high"':'loading="lazy"'}></a>`;
+  function wallTile(id,index,repeat=false) {
+    const item=items.find(x=>x.id===id);
+    return `<a class="wall-tile" href="#case/${item.id}" data-open="${item.id}" data-name="${escape(item.name)}" data-style="${escape(item.zh)}" style="--shift:0px;--order:${index}" ${repeat?'data-repeat aria-hidden="true" tabindex="-1"':''} aria-label="查看 ${escape(item.name)} · ${escape(item.zh)}"><span class="tile-bar" aria-hidden="true"><i></i><i></i><i></i></span><img data-hero-image="${item.id}" src="${imagePath(item,mode)}" alt="${escape(item.name)} 网页风格预览" width="1440" height="900" decoding="async" ${index<5?'fetchpriority="high"':'loading="lazy"'}></a>`;
+  }
+  $('#atlas-wall').innerHTML = Array.from({length:5},(_,column)=>{
+    const ids=wallOrder.filter((_,index)=>index%5===column);
+    const duration=[34,41,37,44,39][column], delay=[-7,-19,-11,-27,-15][column];
+    return `<div class="wall-column" data-direction="${column%2?'down':'up'}"><div class="wall-track" style="--duration:${duration}s;--delay:${delay}s"><div class="wall-set">${ids.map((id,row)=>wallTile(id,row*5+column)).join('')}</div><div class="wall-set wall-repeat">${ids.map((id,row)=>wallTile(id,row*5+column,true)).join('')}</div></div></div>`;
   }).join('');
   function syncHeroImages(type) {
     $$('[data-hero-image]').forEach(img=>{const item=items.find(x=>x.id===Number(img.dataset.heroImage));img.src=imagePath(item,type);img.alt=`${item.name} ${type==='original'?'原始概念图':'网页实作预览'}`;});
@@ -169,6 +174,7 @@
         returnImage.src=imagePath(closing,detailMode);
         await animateChange(()=>{
           detail.hidden=true;gallery.hidden=false;current=null;
+          gallery.dispatchEvent(new Event('atlas:reveal'));
           window.scrollTo({top:listScroll,behavior:'instant'});
           const card=origin?.dataset.open === String(closing.id) ? origin : cardFor(closing.id);
           if(!card.hidden) {
@@ -178,7 +184,11 @@
           document.title='Style Atlas — 网页风格图鉴';
         },{kind:'back',source,destination:()=>returnImage.closest('[hidden]') ? null : returnImage});
         const target=origin?.dataset.open === String(closing.id) && origin.getBoundingClientRect().height ? origin : cardFor(closing.id);
-        if(!target.hidden) target.focus({preventScroll:true});
+        if(!target.hidden) {
+          target.setAttribute('data-returning','');
+          (target.hasAttribute('data-repeat') ? $('#wall-motion') : target).focus({preventScroll:true});
+          target.removeAttribute('data-returning');
+        }
         // Keep the chosen image mode consistent across the whole listing.
         if(mode!==detailMode) {mode=detailMode;requestedMode=mode;items.forEach(x=>{cardImage(x.id).src=imagePath(x,mode);});syncHeroImages(mode);selectButton($(`[data-mode="${mode}"]`));}
         listScroll=scrollY;saveListState();
