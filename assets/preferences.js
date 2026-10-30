@@ -3,13 +3,13 @@
   const themes={forest:'#162720',cobalt:'#10283c',plum:'#302036',ember:'#34231f',sky:'#eaf5ff',mint:'#edf9f1'};
   const root=document.documentElement;
   function setTheme(theme){
-    if(!Object.hasOwn(themes,theme))theme='forest';
+    if(!Object.hasOwn(themes,theme))theme='sky';
     root.dataset.theme=theme;
     root.toggleAttribute('data-light',theme==='sky'||theme==='mint');
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content',themes[theme]);
     document.querySelectorAll('[data-theme-option]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.themeOption===theme)));
   }
-  let saved='forest';try{saved=localStorage.getItem('atlas-theme')||saved;}catch{}
+  let saved='sky';try{saved=localStorage.getItem('atlas-theme')||saved;}catch{}
   setTheme(saved);
   document.addEventListener('DOMContentLoaded',()=>{
     setTheme(root.dataset.theme);
